@@ -4,7 +4,7 @@ from typing import List
 @dataclass(frozen=True)
 class AnalysisResult:
     """
-    分析結果值物件
+    Analyze Result
     """
     trend: str
     strength: float

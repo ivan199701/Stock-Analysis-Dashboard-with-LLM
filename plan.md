@@ -486,22 +486,3 @@ streamlit run src/presentation/ui/pages/main.py
 ```bash
 pytest tests/
 ```
-
-## 7. 注意事項
-
-1. 代碼規範
-   - 使用 Type Hints
-   - 寫詳細文檔
-   - 遵循 PEP 8
-
-2. 效能考慮
-   - 最小化 API 調用
-   - 使用非同步處理
-   - 優化數據處理
-
-3. 錯誤處理
-   - API 錯誤處理
-   - 使用者輸入驗證
-   - 優雅的錯誤顯示
-
-需要針對某個特定部分提供更詳細的說明嗎？
