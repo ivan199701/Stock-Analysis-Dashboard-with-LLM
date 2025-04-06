@@ -26,7 +26,7 @@ graph TD
 
     subgraph "Infrastructure Layer"
         YF[Yahoo Finance]
-        OAI[OpenAI Service]
+        OAI[LLM Service]
         Config[Configuration]
     end
 
@@ -87,16 +87,43 @@ graph TD
 ### 2.2 Data Flow
 ```mermaid
 sequenceDiagram
+    actor User
+    participant UI as Streamlit UI
+    participant AS as Analysis Service
+    participant CS as Cache Service
+    participant SA as Stock Analysis
+    participant SE as Stock Entity
+    participant YF as Yahoo Finance
+    participant OAI as LLM Service
+
     User->>UI: Request stock analysis
-    UI->>AnalysisService: analyze_stock(symbol)
-    AnalysisService->>YahooFinance: get_stock_data()
-    YahooFinance-->>AnalysisService: Stock data
-    AnalysisService->>StockAnalysis: analyze()
-    StockAnalysis-->>AnalysisService: Technical results
-    AnalysisService->>OpenAIService: analyze()
-    OpenAIService-->>AnalysisService: AI analysis
-    AnalysisService-->>UI: AnalysisDTO
-    UI->>User: Display results
+    UI->>AS: analyze_stock(symbol)
+    
+    AS->>CS: get_cached_data(symbol)
+    alt Cache Hit
+        CS-->>AS: Return cached technical analysis
+    else Cache Miss
+        AS->>YF: get_stock_data(symbol)
+        YF-->>AS: Raw stock data
+        AS->>SE: create_stock_entity(data)
+        SE-->>AS: Stock entity
+        AS->>SA: analyze(stock_entity)
+        SA-->>AS: Technical analysis results
+        AS->>CS: cache_results(technical_analysis)
+    end
+    
+    AS-->>UI: Technical AnalysisDTO
+    UI->>User: Display technical results
+
+    alt User Requests AI Analysis
+        User->>UI: Click "Get AI Insights" button
+        UI->>AS: get_ai_insights(symbol)
+        AS->>OAI: generate_insights(technical_results, stock_entity)
+        OAI-->>AS: AI analysis
+        AS-->>UI: AI AnalysisDTO
+        UI->>User: Display AI insights
+    end
+
 ```
 
 ## 3. Technical Specifications
@@ -106,7 +133,7 @@ sequenceDiagram
 - Frontend: Streamlit
 - External APIs:
   - Yahoo Finance API
-  - OpenAI API
+  - LLM API(to be determined)
 - Data Storage: In-memory (Phase 1)
 
 ### 3.2 Key Interfaces
@@ -185,7 +212,6 @@ class CacheService:
 ```requirements.txt
 streamlit>=1.8.0
 yfinance>=0.1.70
-openai>=0.27.0
 python-dotenv>=0.19.0
 ```
 
