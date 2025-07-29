@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import List, Optional
+from dataclasses import dataclass, field
+from typing import List, Optional, Dict
 
 
 @dataclass(frozen=True)
@@ -13,6 +13,7 @@ class AnalysisResult:
     support_levels: List[float]
     resistance_levels: List[float]
     recommendation: str  # "BUY", "SELL", "HOLD"
+    indicators: Dict = field(default_factory=dict, repr=False)
 
     def is_actionable(self) -> bool:
         """Determine if the analysis provides a clear action signal"""

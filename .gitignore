@@ -1,0 +1,8 @@
+# Gemini
+gemini.md
+
+# Environment
+.env
+venv/
+*.pyc
+__pycache__/

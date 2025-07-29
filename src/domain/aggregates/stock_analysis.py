@@ -1,7 +1,7 @@
 import logging
 from typing import List, Dict, Optional, Tuple
-from ..entities.stock import Stock
-from ..value_objects.analysis_result import AnalysisResult
+from domain.entities.stock import Stock
+from domain.value_objects.analysis_result import AnalysisResult
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -29,23 +29,28 @@ class StockAnalysis:
         self.indicators = {}
         self.analysis_results = {}
 
-    def analyze(self, timeframe='medium') -> AnalysisResult:
+    def analyze(self, timeframe='medium', indicators: list = None) -> AnalysisResult:
         """
-        Execute complete analysis process with configurable timeframe
+        Execute complete analysis process with configurable timeframe and indicators
         Returns an AnalysisResult value object
 
         Args:
             timeframe: 'short' (10 periods), 'medium' (20 periods), or 'long' (50 periods)
+            indicators: A list of strings specifying which indicators to calculate.
 
         Returns:
             AnalysisResult: Value object containing analysis results
         """
+        # If no indicators are specified, use all available
+        if indicators is None:
+            indicators = ["SMA", "EMA", "RSI", "MACD", "Bollinger Bands", "Stochastic", "ATR", "OBV"]
+
         # Validate timeframe
         if timeframe not in ['short', 'medium', 'long']:
             logger.warning(f"Invalid timeframe: {timeframe}, using 'medium'")
             timeframe = 'medium'
 
-        self._calculate_indicators(timeframe)
+        self._calculate_indicators(timeframe, indicators)
         self._analyze_trend(timeframe)
         self._generate_signals(timeframe)
 
@@ -57,32 +62,40 @@ class StockAnalysis:
             support_levels=self.analysis_results.get('support_levels', []),
             resistance_levels=self.analysis_results.get(
                 'resistance_levels', []),
-            recommendation=self.analysis_results.get('recommendation', 'HOLD')
+            recommendation=self.analysis_results.get('recommendation', 'HOLD'),
+            indicators=self.indicators
         )
 
-    def _calculate_indicators(self, timeframe='medium'):
+    def _calculate_indicators(self, timeframe='medium', indicators: list = None):
         """
-        Calculate all technical indicators based on timeframe
-
-        Args:
-            timeframe: Analysis timeframe ('short', 'medium', 'long')
+        Calculate the selected technical indicators.
         """
+        if indicators is None:
+            indicators = []
+            
         try:
-            # Convert timeframe to period count
             period = self._get_period_from_timeframe(timeframe)
+            
+            if "SMA" in indicators:
+                self.indicators['sma'] = self.stock.calculate_sma(period=period)
+            if "EMA" in indicators:
+                self.indicators['ema'] = self.stock.calculate_ema(period=period)
+            if "RSI" in indicators:
+                self.indicators['rsi'] = self.stock.calculate_rsi(period=period)
+            if "MACD" in indicators:
+                self.indicators['macd'] = self.stock.calculate_macd()
+            if "Bollinger Bands" in indicators:
+                self.indicators['bbands'] = self.stock.calculate_bollinger_bands(period=period)
+            if "Stochastic" in indicators:
+                self.indicators['stoch'] = self.stock.calculate_stoch()
+            if "ATR" in indicators:
+                self.indicators['atr'] = self.stock.calculate_atr(period=period)
+            if "OBV" in indicators:
+                self.indicators['obv'] = self.stock.calculate_obv()
 
-            self.indicators.update({
-                'sma': self.stock.calculate_sma(period=period),
-                'rsi': self.stock.calculate_rsi(period=period),
-                'macd': self.stock.calculate_macd(),  # MACD has its own periods
-                'bbands': self.stock.calculate_bollinger_bands(period=period)
-            })
         except Exception as e:
-            # Log error and set default values
             logger.error(f"Error calculating indicators: {str(e)}")
-            self.indicators = {
-                'sma': [], 'rsi': [], 'macd': {}, 'bbands': {}
-            }
+            self.indicators = {}
 
     def _get_period_from_timeframe(self, timeframe: str) -> int:
         """
