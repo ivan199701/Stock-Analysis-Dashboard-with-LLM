@@ -78,7 +78,7 @@ class GoogleGeminiService(LLMServiceInterface):
         {{
           "recommendation": "BUY" | "SELL" | "HOLD",
           "confidence": "High" | "Medium" | "Low",
-          "summary": "A concise summary of the overall market sentiment for this stock, referencing the provided data.",
+          "summary": "A concise summary of the aoverall market sentiment for this stock, referencing the provided data.",
           "detailed_analysis": {{
             "trend_analysis": "Analyze the trend based on Moving Averages if present. Is the price above/below the averages? Are there any crossovers?",
             "momentum_analysis": "Analyze momentum using RSI, MACD, and Stochastic Oscillator if present. Mention overbought/oversold levels and crossovers.",
@@ -89,3 +89,13 @@ class GoogleGeminiService(LLMServiceInterface):
         }}
         """
         return prompt
+
+    @async_retry()
+    async def generate_text(self, prompt: str) -> str:
+        try:
+            response = await self.model.generate_content_async(prompt)
+            return response.text
+        except Exception as e:
+            # A real application should have more sophisticated logging/error handling
+            print(f"Error generating text: {e}")
+            raise e

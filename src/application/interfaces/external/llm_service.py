@@ -9,3 +9,10 @@ class LLMServiceInterface(ABC):
                      technical_analysis: AnalysisResult,
                      stock_data: Stock) -> Dict:
         pass
+
+    @abstractmethod
+    async def generate_text(self, prompt: str) -> str:
+        """
+        Generates a text response based on a given prompt.
+        """
+        pass

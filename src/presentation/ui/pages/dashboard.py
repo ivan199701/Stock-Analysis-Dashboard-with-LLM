@@ -12,6 +12,9 @@ from infrastructure.external_services.google_gemini_service import GoogleGeminiS
 from presentation.ui.components.charts.price_chart import PriceChart
 from presentation.ui.components.widgets.analysis_panel import AnalysisPanel
 from presentation.ui.components.widgets.stock_info import StockInfo
+from presentation.ui.components.widgets.chat_widget import render_chat
+from application.services.chat_service import ChatService
+from application.dtos.chat_dto import ChatRequest
 from presentation.ui.utils.localization import get_localizer
 
 @st.cache_data(ttl=86400)
@@ -37,6 +40,10 @@ def initialize_ui_components():
 def render_dashboard():
     t = get_localizer()
     initialize_ui_components()
+
+    # Initialize chat state
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
     # --- Top Controls ---
     with st.container(border=True):
@@ -74,11 +81,14 @@ def render_dashboard():
     if 'analysis_results' not in st.session_state:
         st.session_state.analysis_results = None
 
+    # Instantiate services once
+    llm_service = GoogleGeminiService()
+    analysis_service = AnalysisService(llm_service)
+
     # --- Easter Egg Logic ---
     if symbol.lower() == "laaaaaa":
         st.balloons()
         st.image("src/presentation/ui/assets/alpaca.jpeg", caption="You found the secret alpaca!")
-        # Prevent analysis from running for the secret code
         st.stop()
 
     if analyze_button and symbol:
@@ -89,12 +99,10 @@ def render_dashboard():
                     analysis_stock_data = deepcopy(st.session_state.stock_data)
                     days_to_keep = get_timeframe_days(timeframe)
                     analysis_stock_data.prices = analysis_stock_data.prices[-days_to_keep:]
-
-                    llm_service = GoogleGeminiService()
-                    analysis_service = AnalysisService(llm_service)
                     
                     results = asyncio.run(analysis_service.analyze_stock(analysis_stock_data, timeframe, selected_indicators))
                     st.session_state.analysis_results = results
+                    st.session_state.messages = []  # Reset chat on new analysis
                 except Exception as e:
                     st.error(f"An error occurred during analysis: {e}")
                     st.session_state.analysis_results = None
@@ -120,6 +128,30 @@ def render_dashboard():
             with st.container(border=True):
                 if analysis_results:
                     st.session_state.analysis_panel.render(analysis_results)
+                    st.divider()
+
+                    # --- Chat Section ---
+                    user_question = render_chat()
+
+                    if user_question:
+                        st.session_state.messages.append({"role": "user", "content": user_question})
+                        
+                        with st.spinner("Thinking..."):
+                            try:
+                                chat_service = ChatService(llm_service)
+                                request_dto = ChatRequest(
+                                    stock_analysis=analysis_results.ai_analysis,
+                                    chat_history=st.session_state.messages,
+                                    user_question=user_question
+                                )
+                                response_dto = asyncio.run(chat_service.get_response(request_dto))
+                                assistant_response = response_dto.assistant_response
+                                
+                                st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+                                st.rerun()
+
+                            except Exception as e:
+                                st.error(f"An error occurred in the chat: {e}")
                 else:
                     st.info("Analysis results will be displayed here.")
     else:
