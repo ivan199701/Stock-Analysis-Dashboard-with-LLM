@@ -13,6 +13,7 @@ from presentation.ui.components.charts.price_chart import PriceChart
 from presentation.ui.components.widgets.analysis_panel import AnalysisPanel
 from presentation.ui.components.widgets.stock_info import StockInfo
 from presentation.ui.components.widgets.chat_widget import render_chat
+from presentation.ui.components.tradingview_chart import render_tradingview_chart
 from application.services.chat_service import ChatService
 from application.dtos.chat_dto import ChatRequest
 from presentation.ui.utils.localization import get_localizer
@@ -60,20 +61,12 @@ def render_dashboard():
 
         # Row 2: Secondary controls (collapsible)
         with st.expander("Advanced Options"):
-            c4, c5 = st.columns([3, 1])
-            with c4:
-                available_indicators = ["SMA", "EMA", "RSI", "MACD", "Bollinger Bands", "Stochastic", "ATR", "OBV"]
-                selected_indicators = st.multiselect(
-                    t("indicator_select_label"),
-                    options=available_indicators,
-                    default=["SMA", "EMA", "Bollinger Bands"]
-                )
-            with c5:
-                chart_interaction_mode = st.selectbox(
-                    t("interaction_mode_label"),
-                    options=['pan', 'drawline', 'drawrect'],
-                    index=0
-                )
+            available_indicators = ["SMA", "EMA", "RSI", "MACD", "Bollinger Bands", "Stochastic", "ATR", "OBV"]
+            selected_indicators = st.multiselect(
+                t("indicator_select_label"),
+                options=available_indicators,
+                default=["SMA", "EMA", "Bollinger Bands"]
+            )
 
     # --- Main Dashboard Area ---
     if 'stock_data' not in st.session_state:
@@ -114,46 +107,40 @@ def render_dashboard():
         st.session_state.stock_info.render(stock_data)
         st.divider()
 
-        col1, col2 = st.columns([3, 2])
-        with col1:
-            with st.container(border=True):
-                fig = st.session_state.price_chart.render(
-                    stock_data, 
-                    analysis_results.technical_analysis if analysis_results else None,
-                    get_timeframe_days(timeframe),
-                    chart_interaction_mode
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        with col2:
-            with st.container(border=True):
-                if analysis_results:
-                    st.session_state.analysis_panel.render(analysis_results)
-                    st.divider()
+        tab1, tab2 = st.tabs(["Chart", "AI Analysis & Chat"])
 
-                    # --- Chat Section ---
-                    user_question = render_chat()
+        with tab1:
+            render_tradingview_chart(stock_data, key="tv_chart")
 
-                    if user_question:
-                        st.session_state.messages.append({"role": "user", "content": user_question})
-                        
-                        with st.spinner("Thinking..."):
-                            try:
-                                chat_service = ChatService(llm_service)
-                                request_dto = ChatRequest(
-                                    stock_analysis=analysis_results.ai_analysis,
-                                    chat_history=st.session_state.messages,
-                                    user_question=user_question
-                                )
-                                response_dto = asyncio.run(chat_service.get_response(request_dto))
-                                assistant_response = response_dto.assistant_response
-                                
-                                st.session_state.messages.append({"role": "assistant", "content": assistant_response})
-                                st.rerun()
+        with tab2:
+            if analysis_results:
+                st.session_state.analysis_panel.render(analysis_results)
+                st.divider()
 
-                            except Exception as e:
-                                st.error(f"An error occurred in the chat: {e}")
-                else:
-                    st.info("Analysis results will be displayed here.")
+                # --- Chat Section ---
+                user_question = render_chat()
+
+                if user_question:
+                    st.session_state.messages.append({"role": "user", "content": user_question})
+                    
+                    with st.spinner("Thinking..."):
+                        try:
+                            chat_service = ChatService(llm_service)
+                            request_dto = ChatRequest(
+                                stock_analysis=analysis_results.ai_analysis,
+                                chat_history=st.session_state.messages,
+                                user_question=user_question
+                            )
+                            response_dto = asyncio.run(chat_service.get_response(request_dto))
+                            assistant_response = response_dto.assistant_response
+                            
+                            st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+                            st.rerun()
+
+                        except Exception as e:
+                            st.error(f"An error occurred in the chat: {e}")
+            else:
+                st.info("Analysis results will be displayed here.")
     else:
         st.markdown(
             f"""
@@ -164,5 +151,4 @@ def render_dashboard():
             """,
             unsafe_allow_html=True,
         )
-        fig = st.session_state.price_chart.render_blank()
-        st.plotly_chart(fig, use_container_width=True)
+        render_tradingview_chart(None, key="blank_tv_chart")

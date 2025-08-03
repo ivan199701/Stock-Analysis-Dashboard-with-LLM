@@ -1,0 +1,18 @@
+fix(ui): Address user feedback and improve chart interactivity
+
+This commit resolves several user-reported issues and enhances the UI/UX of the dashboard.
+
+Key changes:
+- **Chart Interactivity:**
+  - Implemented a robust "Clear Drawings" button for the Plotly chart that correctly resets the component's frontend state.
+  - Enhanced the Plotly toolbar to be always visible and include drawing tools by default.
+  - Refined chart aesthetics with a dark theme, tighter margins, and improved hover tooltips.
+- **UI & Content:**
+  - Renamed the "About" page to "Tutorial" and updated all corresponding navigation links and localization keys.
+  - Removed the hardcoded "Gemini 2.5 Pro" text from the AI analysis panel.
+  - Added a disclaimer that AI analysis is only provided in English.
+- **Bug Fixes:**
+  - Corrected a JSON syntax error in the `zh_TW` locale file that caused crashes when switching languages.
+  - Fixed a bug where the application was sending incorrect timeframe parameters to the analysis service.
+- **Layout:**
+  - Re-organized the main dashboard into a tabbed layout to provide more space for the chart and a cleaner look.
