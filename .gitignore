@@ -6,3 +6,7 @@ gemini.md
 venv/
 *.pyc
 __pycache__/
+
+# Frontend
+src/presentation/ui/components/tradingview_chart/frontend/node_modules
+src/presentation/ui/components/tradingview_chart/frontend/build

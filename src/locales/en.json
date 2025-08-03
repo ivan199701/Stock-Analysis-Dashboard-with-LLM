@@ -43,5 +43,6 @@
     "indicator_atr_name": "Average True Range (ATR)",
     "indicator_atr_desc": "- **What it is:** A measure of market volatility. It does not indicate price direction.\n- **Interpretation:** A higher ATR value indicates higher volatility, and a lower ATR indicates lower volatility.",
     "indicator_obv_name": "On-Balance Volume (OBV)",
-    "indicator_obv_desc": "- **What it is:** A cumulative momentum indicator that uses volume flow to predict changes in stock price.\n- **Interpretation:** A rising OBV reflects positive volume pressure that can lead to higher prices. A falling OBV can foreshadow lower prices."
+    "indicator_obv_desc": "- **What it is:** A cumulative momentum indicator that uses volume flow to predict changes in stock price.\n- **Interpretation:** A rising OBV reflects positive volume pressure that can lead to higher prices. A falling OBV can foreshadow lower prices.",
+    "chart_how_to_draw": "💡 **How to Draw:** Click the 'Draw Trend Line' button below the chart, then click twice on the chart to set the start and end points of your line."
 }
