@@ -21,7 +21,7 @@
     "recommendation_metric": "建議",
     "signals_expander": "系統偵測到的關鍵信號",
     "no_signals": "未偵測到重要信號。",
-    "ai_insights_header": "AI 驅動的見解 (Gemini 2.5 Pro)",
+    "ai_insights_header": "AI 驅動的見解",
     "ai_recommendation_metric": "AI 建議",
     "summary_header": "總結:",
     "detailed_analysis_expander": "查看詳細的 AI 分析",

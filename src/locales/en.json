@@ -21,7 +21,7 @@
     "recommendation_metric": "Recommendation",
     "signals_expander": "Key Signals Detected by System",
     "no_signals": "No significant signals detected.",
-    "ai_insights_header": "AI-Powered Insights (Gemini 2.5 Pro)",
+    "ai_insights_header": "AI-Powered Insights",
     "ai_recommendation_metric": "AI Recommendation",
     "summary_header": "Summary:",
     "detailed_analysis_expander": "View Detailed AI Analysis",
